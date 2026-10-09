@@ -57,7 +57,9 @@
     };
 
     chosen {
-        zmk,matrix_transform = &five_column_transform;
+        // ZMK Studio requires physical layouts instead of the legacy
+        // chosen zmk,matrix_transform; select the matching 5-column layout.
+        zmk,physical-layout = &charybdis_5col_layout;
     };
 
     keymap {
