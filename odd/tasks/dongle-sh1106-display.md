@@ -109,15 +109,18 @@ Strategy: `ask-on-risk` (default).
   - `3881713` docs(odd): add dongle-sh1106-display feature task
   - `9a940ee` feat(dongle): add 1.3" I2C SH1106 status display
 
-## Outstanding / not verified
+## Verification (CI)
 
-- **No local west/Zephyr toolchain**: `west build` was not run. CI
-  (`zmkfirmware/zmk/.github/workflows/build-user-config.yml@v0.3`) is the
-  compile gate and has not run.
-- Module `v0.3` → ZMK `v0.3` Kconfig/LVGL symbol compatibility is unverified
-  locally (e.g. `LV_USE_ANIMIMG`, `LV_FONT_UNSCII_8`, `CUSTOM_STATUS_SCREEN`).
-- Physical panel orientation and whether `inversion-on` is needed are
-  hardware-only checks. If colors appear inverted, remove `inversion-on`.
+- CI run `38472943895` (push to `main`, commit `d839a99`): **success** for all
+  targets — including `nice_nano_v2 / charybdis_dongle dongle_display /
+  studio-rpc-usb-uart`. The dongle firmware compiled with the display module and
+  the SH1106 overlay, so module `v0.3` ↔ ZMK `v0.3` Kconfig/LVGL compatibility
+  is confirmed by the compiler. Local `west build` was not used (no toolchain).
+
+## Outstanding (hardware-only)
+
+- Physical panel orientation and whether `inversion-on` is needed can only be
+  checked on real hardware. If colors appear inverted, remove `inversion-on`.
 - Pre-existing doc issue (out of scope, not fixed): `docs/pinout.md` section 1
   labels matrix pins with nRF port numbers as `pro_micro` indices (e.g. COL 0
   `pro_micro 19` claimed as P0.19, but `&pro_micro 19` = P0.02). Header still
@@ -125,6 +128,5 @@ Strategy: `ask-on-risk` (default).
 
 ## Next step
 
-Push `feat/dongle-sh1106-display` (or merge to `main`) and let CI compile the
-dongle target; then flash and confirm the panel renders. Push/PR/merge is the
-user's decision.
+Flash the dongle firmware and confirm the panel renders. If the colors look
+inverted, remove `inversion-on` from the overlay and rebuild.
