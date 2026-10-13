@@ -150,7 +150,7 @@ shield.
 
 | Build | `ZMK_SPLIT_ROLE` | Kscan | Trackball | Input / Pointing |
 | --- | --- | --- | --- | --- |
-| `charybdis_dongle` | **central** (`Kconfig.defconfig:4-7`) | `mock_kscan` (`charybdis_dongle.overlay`) | — | `CONFIG_INPUT=y`, pointing + smooth scrolling |
+| `charybdis_dongle` | **central** (`Kconfig.defconfig:4-7`) | `mock_kscan` (`charybdis_dongle.overlay`) | — | `CONFIG_INPUT=y`, pointing + smooth scrolling, display OLED SH1106 (`dongle_display`) |
 | `charybdis_left` | periférico | matriz GPIO | deshabilitado | `CONFIG_INPUT=y` |
 | `charybdis_right` | periférico | matriz GPIO | **habilitado** | SPI + PMW3610 + pointing + ext_power |
 
@@ -216,6 +216,49 @@ y lo reemite como puntero.
 | Matriz de teclas | Propia de cada mitad (6×4 independiente). **No hay cables de matriz que crucen** entre mitades. |
 | Trackball | 5 hilos al lado derecho: SCK, SDIO, CS, MOT/IRQ, +3V3 y GND. |
 | Dongle | Sin matriz ni sensor: solo radio + USB. |
+
+---
+
+## 6. OLED del dongle — 1.3" I2C (SH1106)
+
+El dongle incorpora una pantalla OLED de 1.3" con controlador SH1106 sobre el bus
+I2C. La lógica de presentación (capa activa, modificadores, batería del
+periférico, salida y bongo cat) proviene del módulo externo
+[englmaxi/zmk-dongle-display](https://github.com/englmaxi/zmk-dongle-display),
+declarado en `config/west.yml` con `revision: v0.3`. El módulo aporta el shield
+`dongle_display`; el nodo de hardware del panel se define en nuestro overlay
+`boards/shields/charybdis/charybdis_dongle.overlay`.
+
+El panel se conecta al bus `pro_micro_i2c` (= `&i2c0` del nRF52840), el mismo
+expuesto por el estándar `pro_micro` del nice!nano v2. En el dongle ese bus queda
+libre porque no se incluye `charybdis_3610.dtsi` (el trackball solo vive en el
+lado derecho).
+
+| Señal I2C | GPIO nRF52840 | `pro_micro` / nice!nano |
+| --- | --- | --- |
+| SDA (datos) | P0.17 | `&pro_micro 2` / D2 |
+| SCL (reloj) | P0.20 | `&pro_micro 3` / D3 |
+
+Parámetros del controlador en `charybdis_dongle.overlay`:
+
+| Propiedad | Valor |
+| --- | --- |
+| Dirección I2C (`reg`) | `0x3c` |
+| `compatible` | `sinowealth,sh1106` |
+| Resolución | 128 × 64 |
+| `segment-offset` | `<2>` (requerido por el panel de 1.3") |
+| `multiplex-ratio` | `<63>` |
+| Precharge | `prechargep = <0x22>` |
+
+> **Nota sobre los colores**: el nodo incluye la propiedad `inversion-on`. Si el
+> panel muestra los colores invertidos en el hardware real, esa propiedad puede
+> eliminarse del overlay. El resto de las propiedades coincide con el binding de
+> Zephyr 3.5.0 (`dts/bindings/display/sinowealth,sh1106-i2c.yaml`).
+
+El dongle habilita el subsistema de display en `charybdis_dongle.conf`
+(`CONFIG_ZMK_DISPLAY=y`) y define un tiempo de apagado por inactividad
+(`CONFIG_ZMK_IDLE_TIMEOUT=60000`). El objetivo de build correspondiente combina
+los shields `charybdis_dongle dongle_display` (ver `build.yaml`).
 
 ---
 
