@@ -65,18 +65,18 @@ Out of scope:
 
 ## Tasks
 
-- [ ] T1 — `config/west.yml`: add `englmaxi` remote + `zmk-dongle-display`
+- [x] T1 — `config/west.yml`: add `englmaxi` remote + `zmk-dongle-display`
       project at `revision: v0.3`. Check: YAML parses; manifest has 3 projects.
-- [ ] T2 — `boards/shields/charybdis/charybdis_dongle.overlay`: add
+- [x] T2 — `boards/shields/charybdis/charybdis_dongle.overlay`: add
       `zephyr,display = &oled;` to chosen and the SH1106 node on
       `&pro_micro_i2c`. Check: node props match Zephyr 3.5 sh1106 binding.
-- [ ] T3 — `boards/shields/charybdis/charybdis_dongle.conf`: enable
+- [x] T3 — `boards/shields/charybdis/charybdis_dongle.conf`: enable
       `CONFIG_ZMK_DISPLAY` and idle timeout. Check: keys present.
-- [ ] T4 — `build.yaml`: dongle shield becomes `charybdis_dongle dongle_display`.
+- [x] T4 — `build.yaml`: dongle shield becomes `charybdis_dongle dongle_display`.
       Check: YAML parses; shield order base-first.
-- [ ] T5 — `docs/pinout.md`: document display I2C wiring + module. Check: links
+- [x] T5 — `docs/pinout.md`: document display I2C wiring + module. Check: links
       and pin table consistent with T2.
-- [ ] T6 — Work-unit commit on `feat/dongle-sh1106-display`; record hash.
+- [x] T6 — Work-unit commit on `feat/dongle-sh1106-display`; record hash.
 
 ## Acceptance criteria
 
@@ -94,8 +94,37 @@ Strategy: `ask-on-risk` (default).
 ## Progress / evidence
 
 - 2026-10-13: Feature created. Research complete (see Verified facts).
-- T1..T6: pending.
+- T1..T5: implemented by delegated writer. Structural checks: `YAML OK` for
+  `config/west.yml` + `build.yaml`; grep assertions on overlay/conf/build.yaml
+  pass; diff limited to the 5 authorized files (`75 insertions(+), 3 deletions(-)`
+  before the docs index fix).
+- Independent read-only verifier: **PASS-WITH-CONCERNS**. All 10 claims
+  CONFIRMED against ZMK v0.3 / Zephyr v3.5.0 / module tag `v0.3`. One real
+  documentation defect found and fixed inline: the I2C table used nRF port
+  numbers as `pro_micro` indices (`pro_micro 17/20`); corrected to
+  `&pro_micro 2` (D2) / `&pro_micro 3` (D3).
+- Native risk assessment (`gentle-ai review assess`): **medium**, `review_due:
+  false` (`under_budget`). RDD mode is **off** (global).
+- T6: work-unit commits on `feat/dongle-sh1106-display`:
+  - `3881713` docs(odd): add dongle-sh1106-display feature task
+  - `9a940ee` feat(dongle): add 1.3" I2C SH1106 status display
+
+## Outstanding / not verified
+
+- **No local west/Zephyr toolchain**: `west build` was not run. CI
+  (`zmkfirmware/zmk/.github/workflows/build-user-config.yml@v0.3`) is the
+  compile gate and has not run.
+- Module `v0.3` → ZMK `v0.3` Kconfig/LVGL symbol compatibility is unverified
+  locally (e.g. `LV_USE_ANIMIMG`, `LV_FONT_UNSCII_8`, `CUSTOM_STATUS_SCREEN`).
+- Physical panel orientation and whether `inversion-on` is needed are
+  hardware-only checks. If colors appear inverted, remove `inversion-on`.
+- Pre-existing doc issue (out of scope, not fixed): `docs/pinout.md` section 1
+  labels matrix pins with nRF port numbers as `pro_micro` indices (e.g. COL 0
+  `pro_micro 19` claimed as P0.19, but `&pro_micro 19` = P0.02). Header still
+  cites branch `master` / commit `cce97e6`.
 
 ## Next step
 
-Delegate T1–T5 to one bounded writer, then verify and commit T6.
+Push `feat/dongle-sh1106-display` (or merge to `main`) and let CI compile the
+dongle target; then flash and confirm the panel renders. Push/PR/merge is the
+user's decision.
