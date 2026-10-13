@@ -1,8 +1,9 @@
 # Pinout y conexiones — ZMK Charybdis
 
 Referencia de las conexiones eléctricas definidas por este módulo ZMK para la
-BastardKB Charybdis. Todas las citas `archivo:línea` apuntan al estado actual del
-repositorio (`master`, commit `cce97e6`).
+BastardKB Charybdis. Las citas `archivo:línea` apuntan a la rama `main` del
+repositorio y son **indicativas**: pueden desviarse a medida que los archivos
+cambian.
 
 > **Fuente de verdad**: los overlays y `.dtsi` del shield, no el esquema de la PCB.
 > Ante cualquier duda, contrastar con el esquema oficial de BastardKB (ver
@@ -14,39 +15,44 @@ repositorio (`master`, commit `cce97e6`).
 
 Definida de forma idéntica en izquierda y derecha:
 
-- `boards/shields/charybdis/charybdis_left.overlay:6-25`
-- `boards/shields/charybdis/charybdis_right.overlay:9-28`
+- `boards/shields/charybdis/charybdis_left.overlay:4-23`
+- `boards/shields/charybdis/charybdis_right.overlay:13-31`
 
 Ambos lados usan **los mismos pines**. Lo que cambia entre mitades es el
 `col-offset` del transform y el rol central/periférico, nunca el cableado.
 
 ### Columnas
 
-| Índice | Pin `pro_micro` | GPIO nRF52840 | Flags |
-| --- | --- | --- | --- |
-| COL 0 | `pro_micro 19` | P0.19 | `GPIO_ACTIVE_HIGH \| GPIO_PULL_DOWN` |
-| COL 1 | `pro_micro 20` | P0.20 | `GPIO_ACTIVE_HIGH \| GPIO_PULL_DOWN` |
-| COL 2 | `pro_micro 10` | P0.10 | `GPIO_ACTIVE_HIGH \| GPIO_PULL_DOWN` |
-| COL 3 | `pro_micro 6` | P0.06 | `GPIO_ACTIVE_HIGH \| GPIO_PULL_DOWN` |
-| COL 4 | `pro_micro 7` | P0.07 | `GPIO_ACTIVE_HIGH \| GPIO_PULL_DOWN` |
-| COL 5 | `pro_micro 8` | P0.08 | `GPIO_ACTIVE_HIGH \| GPIO_PULL_DOWN` |
+| Índice | Pin `pro_micro` | D | GPIO nRF52840 | Flags |
+| --- | --- | --- | --- | --- |
+| COL 0 | `pro_micro 19` | D19 | P0.02 | `GPIO_ACTIVE_HIGH \| GPIO_PULL_DOWN` |
+| COL 1 | `pro_micro 20` | D20 | P0.29 | `GPIO_ACTIVE_HIGH \| GPIO_PULL_DOWN` |
+| COL 2 | `pro_micro 10` | D10 | P0.09 | `GPIO_ACTIVE_HIGH \| GPIO_PULL_DOWN` |
+| COL 3 | `pro_micro 6` | D6 | P1.00 | `GPIO_ACTIVE_HIGH \| GPIO_PULL_DOWN` |
+| COL 4 | `pro_micro 7` | D7 | P0.11 | `GPIO_ACTIVE_HIGH \| GPIO_PULL_DOWN` |
+| COL 5 | `pro_micro 8` | D8 | P1.04 | `GPIO_ACTIVE_HIGH \| GPIO_PULL_DOWN` |
 
 ### Filas
 
-| Índice | Pin `pro_micro` | GPIO nRF52840 | Flags |
-| --- | --- | --- | --- |
-| ROW 0 | `pro_micro 18` | P0.18 | `GPIO_ACTIVE_HIGH` |
-| ROW 1 | `pro_micro 5` | P0.05 | `GPIO_ACTIVE_HIGH` |
-| ROW 2 | `pro_micro 4` | P0.04 | `GPIO_ACTIVE_HIGH` |
-| ROW 3 | `pro_micro 9` | P0.09 | `GPIO_ACTIVE_HIGH` |
+| Índice | Pin `pro_micro` | D | GPIO nRF52840 | Flags |
+| --- | --- | --- | --- | --- |
+| ROW 0 | `pro_micro 18` | D18 | P1.15 | `GPIO_ACTIVE_HIGH` |
+| ROW 1 | `pro_micro 5` | D5 | P0.24 | `GPIO_ACTIVE_HIGH` |
+| ROW 2 | `pro_micro 4` | D4 | P0.22 | `GPIO_ACTIVE_HIGH` |
+| ROW 3 | `pro_micro 9` | D9 | P1.06 | `GPIO_ACTIVE_HIGH` |
+
+La columna **GPIO nRF52840** proviene del mapa `pro_micro` de la placa
+**nice_nano_v2** en ZMK (`app/boards/arm/nice_nano/arduino_pro_micro_pins.dtsi`):
+el mapeo depende de la placa, y `pro_micro N` es un número de pin D, no un número
+de GPIO.
 
 ### Detalles de la matriz
 
 | Propiedad | Valor | Fuente |
 | --- | --- | --- |
-| Dirección de diodos | `row2col` | `charybdis.dtsi:35` |
-| Transform 6 columnas | 12 cols × 4 rows | `charybdis.dtsi:12-24` |
-| Transform 5 columnas | 10 cols × 4 rows | `charybdis.dtsi:27-39` |
+| Dirección de diodos | `row2col` | `charybdis.dtsi:37` |
+| Transform 6 columnas | 12 cols × 4 rows | `charybdis.dtsi:10-21` |
+| Transform 5 columnas | 10 cols × 4 rows | `charybdis.dtsi:23-34` |
 | `col-offset` derecha (6 col) | `6` | `charybdis_right.overlay:5-7` |
 | `col-offset` derecha (5 col) | `5` | `charybdis_right.overlay:9-11` |
 
@@ -65,58 +71,53 @@ ignora por definición del `five_column_transform`; no hay que recablear nada.
 ## 2. Trackball PMW3610 — solo lado derecho
 
 Definido en `boards/shields/charybdis/charybdis_3610.dtsi`, sobre el puerto SPI0
-del nRF52840. **Es el único bloque que usa pines fuera del estándar `pro_micro`.**
+del nRF52840. A diferencia de la matriz, el sensor se direcciona **directamente**
+con `&gpio0` / `NRF_PSEL` en lugar del conector `&pro_micro`; físicamente usa los
+mismos pines que las posiciones `pro_micro` D0-D3.
 
 | Señal SPI | nRF52840 | `pro_micro` equivalente | Definición |
 | --- | --- | --- | --- |
-| SCK | P0.08 | `pro_micro 8` | `charybdis_3610.dtsi:20` |
-| MOSI | P0.17 | `pro_micro 17` | `charybdis_3610.dtsi:21` |
-| MISO | P0.17 | `pro_micro 17` | `charybdis_3610.dtsi:22` |
-| CS | P0.20 | `pro_micro 20` | `cs-gpios` — `charybdis_3610.dtsi:33` |
-| IRQ (MOT) | P0.06 | `pro_micro 6` | `irq-gpios` — `charybdis_3610.dtsi:40` |
+| SCK | P0.08 | `pro_micro 0` (D0) | `charybdis_3610.dtsi:17` |
+| MOSI | P0.17 | `pro_micro 2` (D2) | `charybdis_3610.dtsi:18` |
+| MISO | P0.17 | `pro_micro 2` (D2) | `charybdis_3610.dtsi:19` |
+| CS | P0.20 | `pro_micro 3` (D3) | `cs-gpios` — `charybdis_3610.dtsi:39` |
+| IRQ (MOT) | P0.06 | `pro_micro 1` (D1) | `irq-gpios` — `charybdis_3610.dtsi:46` |
 
 ### Parámetros del sensor
 
 | Propiedad | Valor | Fuente |
 | --- | --- | --- |
-| `spi-max-frequency` | `2000000` (2 MHz) | `charybdis_3610.dtsi:38` |
-| `cpi` | `3200` | `charybdis_3610.dtsi:41` |
-| `evt-type` | `INPUT_EV_REL` | `charybdis_3610.dtsi:42` |
-| Salidas | `INPUT_REL_X`, `INPUT_REL_Y` | `charybdis_3610.dtsi:43-44` |
-| IRQ flags | `GPIO_ACTIVE_LOW \| GPIO_PULL_UP` | `charybdis_3610.dtsi:40` |
+| `spi-max-frequency` | `2000000` (2 MHz) | `charybdis_3610.dtsi:45` |
+| `cpi` | `3200` | `charybdis_3610.dtsi:47` |
+| `evt-type` | `INPUT_EV_REL` | `charybdis_3610.dtsi:48` |
+| Salidas | `INPUT_REL_X`, `INPUT_REL_Y` | `charybdis_3610.dtsi:49-50` |
+| IRQ flags | `GPIO_ACTIVE_LOW \| GPIO_PULL_UP` | `charybdis_3610.dtsi:46` |
 
 ### Pines compartidos entre sensor y matriz
 
-Los pines del sensor y varios pines de la matriz coinciden en el **lado derecho**,
-el único que activa el trackball:
+Con el mapeo correcto de nice_nano_v2, el sensor y la matriz del **lado derecho**
+(el único que activa el trackball) ocupan conjuntos de GPIO **disjuntos**:
 
-| Pin | Uso en el trackball | Uso en la matriz |
-| --- | --- | --- |
-| P0.20 | CS del sensor | COL 1 |
-| P0.08 | SCK | COL 5 |
-| P0.06 | IRQ / MOT | COL 3 |
+- Sensor (SPI0): {P0.06, P0.08, P0.17, P0.20}
+- Matriz (lado derecho): {P0.02, P0.29, P0.09, P1.00, P0.11, P1.04, P1.15, P0.24, P0.22, P1.06}
 
-**No es un conflicto real ni un error de adaptación.** Verificado contra fuentes
-primarias:
+**No hay pines compartidos: no es un conflicto real ni un error de adaptación.**
+La aparente colisión de versiones anteriores de este documento era un artefacto
+de confundir el índice `pro_micro` con el número de GPIO: `pro_micro N` **no** es
+`P0.N`. Con el mapeo correcto, ningún GPIO del sensor coincide con un GPIO de la
+matriz.
 
-1. **El overlay es idéntico al upstream.** Un `diff -ru` del directorio completo
-   `boards/shields/charybdis/` contra
-   [`victorlucachi/zmk-keyboards-charybdis`](https://github.com/victorlucachi/zmk-keyboards-charybdis)
-   da **cero diferencias**. `config/charybdis.keymap` y `config/charybdis.conf`
-   también son idénticos. No hubo "copia sin adaptar": este repo es el upstream
-   tal cual.
-2. **`pro_micro N` y `P0.NN` son el mismo pin físico.** La aparente colisión
-   surge de comparar dos notaciones de la misma cosa: `pro_micro 8` *es* P0.08,
-   según el mapeo de la [wiki nRFMicro](https://github.com/joric/nrfmicro/wiki/Pinout)
-   y el [pinout nice!nano v2](https://www.xopx.de/nrf52840-pro-micro-nicenano-v2-0-pinout/)
-   (D0=P0.08, D1=P0.06, D2=P0.17, D3=P0.20). El lado derecho usa exactamente los
-   mismos pines de matriz que el izquierdo; el hardware simplemente comparte esos
-   pines entre el barrido de teclas y el bus SPI del sensor.
-3. **La PCB separa los grupos.** El esquema oficial de BastardKB documenta
-   `MATRIX` y `TRCK` como grupos de pines **distintos** en la Splinktegrated
-   ([docs.bastardkb.com/hw/pins.html](https://docs.bastardkb.com/hw/pins.html)).
-   El mapeo RB2040 de referencia es: `SS`=GP16, `MO`=GP23, `SC`=GP22,
-   `MI`=GP20, y las columnas `C1`-`C6` en otros GPIO.
+**El overlay es idéntico al upstream.** Un `diff -ru` del directorio completo
+`boards/shields/charybdis/` contra
+[`victorlucachi/zmk-keyboards-charybdis`](https://github.com/victorlucachi/zmk-keyboards-charybdis)
+da **cero diferencias**. `config/charybdis.keymap` y `config/charybdis.conf`
+también son idénticos. No hubo "copia sin adaptar": este repo es el upstream
+tal cual.
+
+> El grupo `MATRIX`/`TRCK` del esquema de BastardKB pertenece a la Splinktegrated
+> RP2040, un MCU distinto del nice!nano; no aporta evidencia sobre estos GPIO. La
+> conclusión "no es un conflicto real" se sostiene por el mapeo correcto: los
+> conjuntos de pines son disjuntos.
 
 ### MOSI y MISO en el mismo pin (P0.17)
 
@@ -130,7 +131,7 @@ psels = <NRF_PSEL(SPIM_SCK,  0, 8)>,
         <NRF_PSEL(SPIM_MISO, 0, 17)>;
 ```
 
-Este repo lo replica textualmente (`charybdis_3610.dtsi:20-22`), incluido
+Este repo lo replica textualmente (`charybdis_3610.dtsi:17-19`), incluido
 `cs-gpios = <&gpio0 20 GPIO_ACTIVE_LOW>` e `irq-gpios = <&gpio0 6 ...>`. Una
 configuración independiente verificada publica el mismo mapeo lógico
 (SCK=P0.08, MOSI/MISO=P0.17, CS=P0.20, IRQ=P0.06) en
@@ -150,14 +151,14 @@ shield.
 
 | Build | `ZMK_SPLIT_ROLE` | Kscan | Trackball | Input / Pointing |
 | --- | --- | --- | --- | --- |
-| `charybdis_dongle` | **central** (`Kconfig.defconfig:4-7`) | `mock_kscan` (`charybdis_dongle.overlay`) | — | `CONFIG_INPUT=y`, pointing + smooth scrolling, display OLED SH1106 (`dongle_display`) |
+| `charybdis_dongle` | **central** (`Kconfig.defconfig:6-7`) | `mock_kscan` (`charybdis_dongle.overlay`) | — | `CONFIG_INPUT=y`, pointing + smooth scrolling, display OLED SH1106 (`dongle_display`) |
 | `charybdis_left` | periférico | matriz GPIO | deshabilitado | `CONFIG_INPUT=y` |
 | `charybdis_right` | periférico | matriz GPIO | **habilitado** | SPI + PMW3610 + pointing + ext_power |
 
 `ZMK_SPLIT` se habilita por defecto para los tres shields
-(`Kconfig.defconfig:11-15`).
+(`Kconfig.defconfig:11-16`).
 
-**Detalle de activación del trackball** (`charybdis_right.overlay:30-40`):
+**Detalle de activación del trackball** (`charybdis_right.overlay:33-39`):
 
 ```dts
 &spi0    { status = "okay"; };
@@ -165,7 +166,7 @@ shield.
 &trackball_split { device = <&trackball>; };
 ```
 
-**En el lado izquierdo** (`charybdis_left.overlay:27-29`) el sensor se desactiva
+**En el lado izquierdo** (`charybdis_left.overlay:25-27`) el sensor se desactiva
 explícitamente:
 
 ```dts
@@ -185,7 +186,7 @@ en REST1/REST2.
 
 ## 4. Transporte del trackball a través del split
 
-`charybdis.dtsi:160-168` define el nodo de transporte:
+`charybdis.dtsi:162-170` define el nodo de transporte:
 
 ```dts
 split_inputs {
@@ -203,7 +204,7 @@ sensor PMW3610  →  periférico derecho  →  BLE  →  dongle central  →  US
 ```
 
 El lado derecho engancha el sensor con `device = <&trackball>`
-(`charybdis_right.overlay:39-40`); el dongle central lo recibe como *input split*
+(`charybdis_right.overlay:41-43`); el dongle central lo recibe como *input split*
 y lo reemite como puntero.
 
 ---
@@ -215,7 +216,30 @@ y lo reemite como puntero.
 | Interconexión entre mitades | TRRS de 4 conductores (VCC, GND, datos, reloj del split serial) + detección `EXT_POWER` si hay batería. El repo no define pines TRRS extra: usa el default del shield. |
 | Matriz de teclas | Propia de cada mitad (6×4 independiente). **No hay cables de matriz que crucen** entre mitades. |
 | Trackball | 5 hilos al lado derecho: SCK, SDIO, CS, MOT/IRQ, +3V3 y GND. |
-| Dongle | Sin matriz ni sensor: solo radio + USB. |
+| Dongle | Sin matriz ni sensor: solo radio, USB y la pantalla OLED I2C (sección 6). |
+
+### Cableado del dongle
+
+El dongle es un `nice_nano_v2` (`build.yaml`) que actúa como **central** del split
+(`Kconfig.defconfig:6-7`) y alimenta a **2 periféricos BLE**
+(`CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS=2` en `charybdis_dongle.conf`). Se
+configura con TX a +8 dBm (`CONFIG_BT_CTLR_TX_PWR_PLUS_8=y`) y
+`CONFIG_ZMK_SLEEP=n`: va siempre alimentado por USB.
+
+| Tramo | Conductores |
+| --- | --- |
+| Alimentación / datos | USB-C: alimenta el controlador y transporta HID y ZMK Studio. |
+| Matriz de teclas | Ninguna: usa un kscan simulado (`zmk,kscan = &mock_kscan` en `charybdis_dongle.overlay`). |
+| Trackball | Ninguno: el sensor PMW3610 solo existe en la mitad derecha. |
+| TRRS | Ninguno. |
+| OLED 1.3" SH1106 | 4 hilos por I2C: `VCC` → 3V3, `GND` → GND, `SDA` → P0.17 (D2), `SCL` → P0.20 (D3). |
+
+La pantalla cuelga del bus `pro_micro_i2c` (= `&i2c0`) con dirección `0x3c`
+(`charybdis_dongle.overlay:17-34`); se habilita con `CONFIG_ZMK_DISPLAY=y` y se
+apaga por inactividad con `CONFIG_ZMK_IDLE_TIMEOUT=60000`
+(`charybdis_dongle.conf:12-13`). El objetivo de build combina los shields
+`charybdis_dongle dongle_display` con el snippet `studio-rpc-usb-uart`
+(`build.yaml:21-24`).
 
 ---
 
@@ -268,7 +292,7 @@ Investigación cerrada contra fuentes primarias con estos resultados:
 
 | Ítem | Veredicto | Evidencia |
 | --- | --- | --- |
-| Pines compartidos sensor/matriz | **No es problema** | El overlay es idéntico al upstream (`diff -ru` vacío); `pro_micro N` y `P0.NN` son el mismo pin; la PCB separa `MATRIX` y `TRCK` |
+| Pines compartidos sensor/matriz | **No es problema** | No hay pines compartidos: con el mapeo correcto de nice_nano_v2 los conjuntos de GPIO del sensor y de la matriz son disjuntos; el overlay es idéntico al upstream (`diff -ru` vacío) |
 | MOSI/MISO en P0.17 | **Correcto y deliberado** | Ejemplo canónico del README del driver badjeff; `SDIO` es bidireccional |
 | Pinout de la matriz | **Idéntico al upstream** | `diff -ru boards/shields/charybdis/` sin diferencias |
 | Pinout del trackball | **Idéntico al upstream** | `charybdis_3610.dtsi` sin diferencias |
@@ -276,9 +300,10 @@ Investigación cerrada contra fuentes primarias con estos resultados:
 ### Pendiente real detectado
 
 **`config/west.yml` no declara el módulo del shield.** El árbol local define los
-shields en `boards/shields/charybdis/`, pero `west.yml` solo incluye `zmk` y
-`zmk-pmw3610-driver` — le falta el proyecto del módulo que el propio README
-indica como necesario en configuraciones tipo *template*:
+shields en `boards/shields/charybdis/`, pero `west.yml` solo incluye `zmk`,
+`zmk-pmw3610-driver` y `englmaxi/zmk-dongle-display` (`revision: v0.3`, el
+módulo externo del display) — le falta el proyecto del módulo del shield que el
+propio README indica como necesario en configuraciones tipo *template*:
 
 ```yaml
 - name: zmk-keyboards-charybdis
@@ -299,7 +324,7 @@ cuál de los dos modos es el buscado: cambiarlo altera el build.
 2. **Validación funcional**: si el trackball falla, revisar primero el delay de
    arranque del driver (`CONFIG_PMW3610_ALT_INIT_POWER_UP_EXTRA_DELAY_MS`), que el
    propio README documenta como causa típica de `Incorrect product id 0xFF`.
-3. **Controlador del dongle**: `build.yaml` incluye `seeeduino_xiao_ble` y
-   `nice_nano_v2` para el dongle. El README advierte explícitamente que flashear
-   el reset equivocado puede bloquear el controlador; verificar el nombre del
-   `.uf2` antes de copiarlo.
+3. **Controlador del dongle**: `build.yaml` usa únicamente `nice_nano_v2` para el
+   dongle. El README advierte explícitamente que flashear el reset equivocado
+   puede bloquear el controlador; verificar el nombre del `.uf2` antes de
+   copiarlo.
